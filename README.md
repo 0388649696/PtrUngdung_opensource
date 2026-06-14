@@ -51,11 +51,12 @@ networks:
 - An toàn và bảo mật: Các dịch vụ hoạt động biệt lập trong mạng nội bộ Docker, chỉ mở các cổng công khai cần thiết ra Internet thông qua Reverse Proxy.
 ## 4. Quy trình triển khai ứng dụng lên máy chủ ngoại tuyến (Offline - No Internet)
 Khi ứng dụng đã chạy tốt trên laptop cá nhân và cần chuyển dịch lên một máy chủ cô lập hoàn toàn với Internet, quy trình xử lý bao gồm 4 bước kỹ thuật:
+```
 [Laptop Cá Nhân (Online)]...............................[Máy Chủ Thật (Offline)]
    ├── 
     1. docker save (Xuất Image .tar) ───────────────>   ├──  3. docker load (Nạp lại Image)
 └── 2. Đóng gói mã nguồn & Compose ─────────────────>   └──  4. docker-compose up -d
-
+```
 
 Trích xuất Image trên máy cá nhân: Đóng gói toàn bộ các Image đã tải từ Internet thành một file nén vật lý:
 ```bash
