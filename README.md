@@ -159,8 +159,9 @@ networks:
 
 ## 3. Thực hành chi tiết từng cấu phần hệ thống
 #### Bước 3.1: Cấu hình Node-RED thu thập và rẽ nhánh dữ liệu luôn luôn gửi định kỳ
-Luồng Node-RED sử dụng node http request kéo mã nguồn HTML từ các sàn giao dịch. Khối chức năng Function xử lý Regex bóc tách chuỗi số, loại bỏ nhiễu để định dạng về kiểu đối tượng 
-json sạch.Dữ liệu sau khi xử lý được tách làm 3 nhánh hoạt động đồng thời:Đẩy lệnh POST sang Flask API nhằm cập nhật trạng thái giá tức thời vào MariaDB.Bắn dữ liệu dạng cấu trúc thời gian vào InfluxDB lưu lịch sử.Bỏ qua cơ chế chặn giá trùng, luôn luôn gửi thông tin trạng thái thị trường cập nhật định kỳ mỗi 15 phút về hệ thống Telegram Bot.Mã cấu trúc luồng Node-RED (Trích đoạn luồng xử lý đồng bộ):
+Luồng Node-RED sử dụng node http request kéo mã nguồn HTML từ các sàn giao dịch. Khối chức năng Function xử lý Regex bóc tách chuỗi số, loại bỏ nhiễu để định dạng về kiểu đối tượng json sạch.
+<img width="1588" height="582" alt="image" src="https://github.com/user-attachments/assets/64ddf5b6-52b6-415d-be91-fcccf3a7d72a" /> .
+- Dữ liệu sau khi xử lý được tách làm 3 nhánh hoạt động đồng thời:Đẩy lệnh POST sang Flask API nhằm cập nhật trạng thái giá tức thời vào MariaDB.Bắn dữ liệu dạng cấu trúc thời gian vào InfluxDB lưu lịch sử.Bỏ qua cơ chế chặn giá trùng, luôn luôn gửi thông tin trạng thái thị trường cập nhật định kỳ mỗi 15 phút về hệ thống Telegram Bot.Mã cấu trúc luồng Node-RED (Trích đoạn luồng xử lý đồng bộ):
 ```json
 [
   {
@@ -208,8 +209,9 @@ def get_realtime():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-Trang giao diện Front-End (index.html) sử dụng phương thức AJAX Fetch API lặp chu kỳ ngắn nhằm tự động quét đầu cuối API, ép trang Web tự động cập nhật số liệu hiển thị lên màn hình mà không cần tải lại toàn bộ trang:
-```javascript
+```
+ Trang giao diện Front-End (index.html) sử dụng phương thức AJAX Fetch API lặp chu kỳ ngắn nhằm tự động quét đầu cuối API, ép trang Web tự động cập nhật số liệu hiển thị lên màn hình mà không cần tải lại toàn bộ trang:
+```
 function fetchRealtimeData() {
     fetch('/api/get_realtime')
         .then(response => response.json())
@@ -223,20 +225,39 @@ function fetchRealtimeData() {
 setInterval(fetchRealtimeData, 5000); // Tự động quét cập nhật dữ liệu sau mỗi 5 giây
 ```
 #### Bước 3.3: Tối ưu trực quan hóa biểu đồ dạng khối vuông nối tiếp trên Grafana
+Để giải quyết triệt để hiện tượng dữ liệu tài chính biến thiên nhỏ (độ lệch vài trăm đồng) bị ép phẳng lỳ trên đồ thị mặc định, người quản trị cần thực hiện cấu hình kết hợp giữa câu lệnh truy vấn gom nhóm thông minh và tinh chỉnh giao diện trục tọa độ. Quy trình thực hiện chi tiết gồm các thao tác sau:
+1. Truy cập hệ thống và kết nối cơ sở dữ liệu
++ Thao tác 1: Mở trình duyệt web, truy cập vào giao diện quản trị Grafana.
+  <img width="1920" height="499" alt="image" src="https://github.com/user-attachments/assets/49876f3d-192d-4303-ae4f-bbae808b2547" />
++ Thao tác 2: Tại màn hình đăng nhập, nhập tài khoản mặc định hệ thống với Username là admin và Password là admin để truy cập vào quyền cấu hình tối cao.
+  <img width="1529" height="678" alt="image" src="https://github.com/user-attachments/assets/9b8f16f8-7ea3-4067-9fd9-0e77a6bdfe6d" />
++ Thao tác 3: Điều hướng menu bên trái, chọn Connections $\rightarrow$ chọn Data sources $\rightarrow$ nhấn Add data source và chọn driver MySQL/MariaDB. Khai báo chính xác các thông số kết nối nội bộ Container bao gồm Host (mariadb_thitruong:3306), Database (thitruong_db), User (anhtu_user), và Password (anhtu_password). Nhấn Save & test để xác nhận hệ thống báo dòng chữ xanh "Database connection ok".
+  <img width="992" height="566" alt="image" src="https://github.com/user-attachments/assets/3dec5ed1-d986-41e5-ae97-9266aeddc614" />
+
+2. Tạo lập vùng vẽ và xử lý câu lệnh SQL gom nhóm dữ liệu
++ Thao tác 4: Quay lại menu bên trái, nhấn vào biểu tượng Dashboards (hình 4 ô vuông) $\rightarrow$ chọn New $\rightarrow$ chọn New dashboard $\rightarrow$ nhấp vào nút + Add visualization. Hệ thống sẽ hiện bảng chọn nguồn dữ liệu, nhấp chọn vào tên dữ liệu vừa kết nối là MariaDB_Thitruong.
++ Thao tác 5: Tại giao diện thiết lập đồ thị mới, nhìn xuống khu vực cấu hình truy vấn dưới chân màn hình, nhấp vào nút Code (nằm ngay bên cạnh nút Builder mặc định) để chuyển sang chế độ viết lệnh SQL thuần.
++ Thao tác 6: Dùng câu lệnh SQL xử lý gom nhóm dữ liệu theo khoảng thời gian 15 phút, loại bỏ các giá trị lỗi phát sinh khi chạy thử dưới đây vào ô soạn thảo:
+<img width="1071" height="317" alt="image" src="https://github.com/user-attachments/assets/cb18bf06-206d-4cc3-85c7-b5f681fc9b1d" />
+
 Để xử lý hiện tượng dữ liệu tài chính biến thiên nhỏ (độ lệch vài trăm đồng) bị ép phẳng lỳ trên đồ thị mặc định, cấu trúc truy vấn được gom nhóm thông minh theo khoảng thời gian 15 phút bằng cấu trúc lệnh 
-```sql
- GROUP BY, kết hợp gán biên độ cứng tối ưu hóa trục đứng $Y-Axis$:
-```sql
-SELECT 
-  FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(cap_nhat_luc) / (15 * 60)) * (15 * 60)) AS time,
-  ROUND(AVG(CASE WHEN thuong_hieu = 'Phú Quý' THEN gia_ban END)) AS "Phú Quý - Giá Bán",
-  ROUND(AVG(CASE WHEN thuong_hieu = 'Ancarat' THEN gia_ban END)) AS "Ancarat - Giá Bán"
-FROM bang_gia_bac
-WHERE gia_ban > 2000000 
-GROUP BY time
-ORDER BY time ASC;
+``` 
+ SELECT 
+  cap_nhat_luc AS time, 
+  gia_ban AS "Giá Bán Phú Quý",
+  gia_mua AS "Giá Mua Phú Quý"
+FROM bang_gia_bac 
+WHERE thuong_hieu = 'Phú Quý' AND gia_ban > 2000000
+ORDER BY cap_nhat_luc ASC;
 ```
-Tinh chỉnh thuộc tính hiển thị trực quan đồ thị:
++ Thao tác 7: Nhấn nút Run query (màu xanh dương) ở giữa màn hình để ép hệ thống biên dịch dữ liệu.
+
+3. Tinh chỉnh thuộc tính đồ thị và bóp nghẹt biên độ trục đứng $Y-Axis$
++ Thao tác 8: Nhìn sang cột cấu hình thuộc tính bên phải màn hình (thanh Panel options), cuộn xuống tìm danh mục Graph styles. Tại dòng thuộc tính Line interpolation, nhấp mở menu thả xuống và chọn giá trị Step before (hoặc Step after). Thao tác này buộc đồ thị không vẽ đường chéo xiên mà chuyển hẳn sang dạng bậc thang vuông góc $90^\circ$ nối tiếp liên tục để làm rõ các vách đá biến động giá.
++ Thao tác 9: Tiếp tục cuộn bảng thuộc tính bên phải xuống danh mục Standard options. Tìm ô thiết lập Unit, gõ tìm kiếm từ khóa currency và kích chọn định dạng tiền tệ Vietnamese Dong (₫). Tại ô Decimals ngay phía dưới, điền số 0 để ẩn toàn bộ phần thập phân lỗi thời.
++ Thao tác 10: Tại hai ô giá trị biên độ Min và Max của mục Standard options, tiến hành nhập thủ công để khóa cứng trục đứng Y-Axis sát sàn dữ liệu thực tế (Ví dụ: điền Min là 2570000 và Max là 2575000). Hành động bóp nghẹt không gian này giúp kéo giãn tối đa khoảng cách hiển thị theo chiều dọc, khiến mắt thường nhìn thấy rất rõ các bước nhảy giá dù chỉ chênh lệch vài trăm đồng.
+
+(*) Tinh chỉnh thuộc tính hiển thị trực quan đồ thị:
 - Graph Styles $\rightarrow$ Line interpolation: Thiết lập về giá trị Step before (Biểu đồ bậc thang vuông góc). Dữ liệu đi ngang tạo cạnh phẳng, khi cào được giá mới (dù lệch nhỏ 100đ) đồ thị bẻ góc vuông $90^\circ$ giật thẳng đứng lên hoặc xuống, giúp mắt thường quan sát rõ rệt sự biến thiên.
 - Standard Options $\rightarrow$ Min/Max: Ép sát sàn giới hạn trục Y từ mốc 2570000 đến 2575000 nhằm kéo giãn tối đa biên độ không gian hiển thị của đường đồ thị vuông.
 
@@ -248,19 +269,35 @@ Tinh chỉnh thuộc tính hiển thị trực quan đồ thị:
 
 ## 4. Quy trình đóng gói xuất và khôi phục hệ thống cô lập an toàn
 Để bảo vệ toàn vẹn dữ liệu gốc và không gây ảnh hưởng đến các dự án độc lập khác chạy chung trên máy chủ hệ thống, quy trình thực hiện xử lý thông qua môi trường Container cách ly:
-Bước 4.1: Xuất toàn bộ hệ thống bằng Container bảo mậtKhi cụm container đang ở trạng thái dừng, các dữ liệu lưu trữ bị khóa quyền hệ thống. Chúng ta sử dụng một Container Linux phụ trợ siêu nhẹ (alpine) chui trực tiếp vào phân vùng Docker để đóng gói tệp tin cấu hình và tệp tin linh hồn lưu trữ của đồ thị grafana.db cùng toàn bộ tệp tin MariaDB:
- 
-# Thực hiện đóng gói cô lập toàn bộ hạ tầng bên trong Container phụ trợ
+- Bước 4.1: Xuất toàn bộ hệ thống bằng Container bảo mậtKhi cụm container đang ở trạng thái dừng, các dữ liệu lưu trữ bị khóa quyền hệ thống. Chúng ta sử dụng một Container Linux phụ trợ siêu nhẹ (alpine) chui trực tiếp vào phân vùng Docker để đóng gói tệp tin cấu hình và tệp tin linh hồn lưu trữ của đồ thị grafana.db cùng toàn bộ tệp tin MariaDB:
+- Thực hiện đóng gói cô lập toàn bộ hạ tầng bên trong Container phụ trợ
 docker run --rm -v $(pwd):/backup alpine tar -czvf /backup/project_thitruong_backup.tar.gz -C /backup docker-compose.yml flask_api nginx mariadb_data influxdb_data nodered_data grafana_data/grafana.db
-Bước 4.2: Xóa sạch trạng thái hệ thống (Reset trắng)
-  
-# Xóa bỏ hoàn toàn container, cấu trúc mạng cục bộ ảo cache của dự án
+
+<img width="1078" height="634" alt="image" src="https://github.com/user-attachments/assets/17e2c43b-4b9e-48e9-a99b-c4343ef0a82b" />
+
+- Bước 4.2: Xóa sạch trạng thái hệ thống (Reset trắng) 
++ Xóa bỏ hoàn toàn container, cấu trúc mạng cục bộ ảo cache của dự án
+```
 docker-compose down -v
-Kết quả kiểm tra qua lệnh docker ps cho thấy cụm dịch vụ giá bạc biến mất hoàn toàn, hệ thống máy chủ trống sạch sẽ, trong khi tất cả các ứng dụng chạy độc lập khác ngoài VPS không bị gián đoạn.Bước 4.3: Tái nạp hệ thống khôi phục nguyên trạng từ file cấu hình
- 
-# Khởi chạy tái sinh toàn bộ hạ tầng từ vùng lưu trữ cố định
+```
+Kết quả kiểm tra qua lệnh docker ps cho thấy cụm dịch vụ giá bạc biến mất hoàn toàn, hệ thống máy chủ trống sạch sẽ, trong khi tất cả các ứng dụng chạy độc lập khác ngoài VPS không bị gián đoạn.
+<img width="1081" height="534" alt="image" src="https://github.com/user-attachments/assets/2e56f8ad-290c-4a70-b7e1-04dd953f8b17" />
+
+- Bước 4.3: Tái nạp hệ thống khôi phục nguyên trạng từ file cấu hình
++ Khởi chạy tái sinh toàn bộ hạ tầng từ vùng lưu trữ cố định
+```
 docker-compose up -d
+```
 Hạ tầng tự động đọc lại các phân vùng dữ liệu cũ đã được bảo hiểm trong thư mục, trang giao diện tại cổng :82 hoạt động ổn định trở lại, hiển thị chính xác biểu đồ vuông nối tiếp thời gian thực mà không yêu cầu người quản trị cấu hình lại bất kỳ thông số hệ thống nào.
+
+#### Kết quả: 
+Giao diện theo dõi trực quan:
+<img width="1479" height="942" alt="image" src="https://github.com/user-attachments/assets/b4198d1c-b988-41f5-b0ac-4467e48283ef" /> . 
+Group **@nhomtest_tbthitruong1**:
++ <img width="580" height="691" alt="image" src="https://github.com/user-attachments/assets/126e78ba-cde2-4647-9bcc-90d67d363aae" />
++ <img width="452" height="640" alt="Screenshot 2026-06-14 163959" src="https://github.com/user-attachments/assets/af37b6b8-9727-4a5c-a10a-11ea3ec91236" />
+Bot Tele Public: **@tbthitruong_bot**
+
  
 # PHẦN III: KẾT LUẬN VÀ KIẾN THỨC RÚT RA SAU TRIỂN KHAI:
 Qua quá trình tương tác kỹ thuật, trực tiếp gỡ lỗi hệ thống, em rút ra các bài học và tri thức cốt lõi được đúc kết bao gồm:
