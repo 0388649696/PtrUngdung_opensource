@@ -1,12 +1,450 @@
 **Họ tên: Nguyễn Đức Anh Tú** - K225480106070 - K58KTP
 
 # Chương 1: Ứng dụng Ubuntu và Docker, dùng Docker để Build myapi
+### 1. Cấu hình Domain với Cloudflare
+Trước tiên, e sử dụng một tên miền để thực hành tên "divu.click"
+<img width="1890" height="894" alt="Screenshot 2026-04-11 175740" src="https://github.com/user-attachments/assets/68005d80-7b8b-4238-89f8-c4a3a7227dda" />
+- Tại giao diện Cloudflare truy cập qua (https://dash.cloudflare.com/{userid}/domains/overview)
+- Chọn Import DNS records automatically > 
+<img width="1056" height="778" alt="Screenshot 2026-04-11 180902" src="https://github.com/user-attachments/assets/5002d3f2-713a-4eec-b79a-929e64a9f37c" />
+<img width="379" height="242" alt="Screenshot 2026-04-11 182028" src="https://github.com/user-attachments/assets/75d93f07-eabd-410a-9e3b-02a79aff6b8b" />
+- Cập nhật Namesever cho tên miền này để quản lý miền này trên CF, ta được 2 NS. Vào trang NCC tên miền để update NS này. Đợi 5-10p để nó update.
+<img width="1102" height="692" alt="Screenshot 2026-04-11 182058" src="https://github.com/user-attachments/assets/d415e5f4-be2b-4b45-ad48-f47ff2f1cbf8" />
+
+### 2.Xây dựng cấu hình hệ thống
+### B1 – Cài Ubuntu + Docker
+Dùng phiên bản Ubuntu 24.04.4 LTS (ISO)
+Dùng VMwave > Tạo máy ảo mới > Chọn file Iso. Cấu hình ổn định 2c-2r-20gb
+Đến đây ta đặt thông tin login, nameserver, password
+<img width="1075" height="252" alt="Screenshot 2026-04-13 191941" src="https://github.com/user-attachments/assets/77f538bc-7505-4cca-a202-8f1e654d5d7e" />
+Di chuyển tới đây, Space chọn để cài Install OpenSSH server
+<img width="622" height="217" alt="Screenshot 2026-04-13 192126" src="https://github.com/user-attachments/assets/68178562-f251-4bba-a132-6ac86803055f" /> 
+
+Sau khi cài đặt xong, đăng nhập vào Ubuntu với thông tin đăng nhập trước đó để chuyển sang bước tiếp theo
+#### B2 – Cài SSH
+Lệnh: sudo apt update : update hdh
+      sudo apt install openssh-server -y  : Cài SSH.
+      <img width="686" height="131" alt="image" src="https://github.com/user-attachments/assets/034f473c-62e0-4b2d-a39b-63cdf3af32e9" /> 
+      
+      ip a : lấy IP máy ta có 192.168.243.131 => ssh anhtu@192.168.243.131
+      <img width="826" height="230" alt="image" src="https://github.com/user-attachments/assets/3b931daf-9513-43a0-ae98-9767db5d5291" />
+      ssh anhtu@192.168.243.131  : Tại máy kết nối (Windows) join nó vào Ubuntu
+#### B3 – Cài Docker
+Lệnh cài: sudo apt install docker.io -y
+      sudo usermod -aG docker $USER  : để tiện không cần phải sudo khi dùng Docker
+      exit để reboot áp dụng thay đổi
+      sudo apt install docker-compose -y  : Cài docker compose
+  sudo ufw allow 80 / 1880 / 9630 - Mở các cổng cần thiết
+  sudo ufw disable -> tắt để login dễ hơn
+<img width="565" height="214" alt="image" src="https://github.com/user-attachments/assets/00f8bee9-d688-408b-8de5-8470da969d8d" />
+
+### 3.C – Tạo thư mục project
+- Tạo /my-app : mkdir -p ~/myapp
+- join nó: cd ~/myapp
+- Tạo nginx, myweb, nodered.
+myapp/
+ ├── docker-compose.yml
+ ├── nginx/
+ │    └── nginx.conf
+ ├── myweb/
+ │    └── index.html
+ └── nodered/.
+Tạo: nano docker-compose.yml.
+
+
+### E- Triển khai test
+Chạy lại containner: docker-compose up -d
+Check: docker-compose ps
+<img width="976" height="100" alt="image" src="https://github.com/user-attachments/assets/1d62df5e-75ef-4c02-ad3d-1953fc4462e4" />
+<img width="917" height="262" alt="image" src="https://github.com/user-attachments/assets/f94a2522-cc8a-4f49-854d-3a3c4c5b3e2f" />
+
+Chỉnh file index.html:
+<img width="735" height="312" alt="image" src="https://github.com/user-attachments/assets/2e56cfeb-6a16-4695-bac6-f16c56696816" />
+Ví dụ gọi api 
+<img width="970" height="379" alt="image" src="https://github.com/user-attachments/assets/dcc6d3a6-6ff0-4ba4-b501-2651cd40b9a9" />
+
+### G - Triển khai ứng dụng đến End-user
+Vào Zero Trust
+vào Networks → Tunnels
+bấm Create a tunnel
+chọn Cloudflared, Đặt tên myapp-tunnel
+<img width="882" height="564" alt="image" src="https://github.com/user-attachments/assets/61902c82-f83b-45da-8292-dd8d6dc62060" />
+ Chọn subdomain: anhtu.divu.click
+ Cấu hình URL: http://nginx:80
+Chú ý: + kiểm tra container cùng network. Ta phải thấy cùng network
+docker inspect nginx | grep Network
+docker inspect cloudflared | grep Network
+- Giai thích: Trường hợp e rằng cloudflared chạy trong docker nên sử dụng nginx:80
+
+Kết quả:
+<img width="1606" height="724" alt="image" src="https://github.com/user-attachments/assets/076368df-429e-4925-b6ca-de94a1095982" />
+
+
+#### Đúc kết
+1. Tại sao dùng Nginx làm Reverse Proxy?
+Nginx đóng vai trò gateway, giúp gom toàn bộ traffic vào một điểm duy nhất rồi phân phối (web, API), tăng bảo mật và tránh phải expose trực tiếp Node-RED ra Internet. Để tránh bị quét dò cổng thì không mở port ra ngoài Internet, mà dùng Cloudflare Tunnel: server chỉ tạo kết nối outbound, nên bên ngoài không scan thấy port nào cả.
+
+2. Mount file vs mount thư mục trong Docker
+Mount file dùng cho cấu hình cụ thể (ví dụ nginx.conf), còn mount thư mục dùng cho dữ liệu hoặc source code; thư mục linh hoạt hơn vì chứa nhiều file.
+
+3. Sửa index.html có cập nhật ngay không?
+Có . Vì container đọc trực tiếp file từ host thông qua mount, nên thay đổi trên Ubuntu sẽ phản ánh ngay mà không cần rebuild.
+
+4. restart: always / unless-stopped dùng để làm gì?
+Giúp container tự khởi động lại khi bị crash hoặc khi hệ thống reboot, đảm bảo dịch vụ luôn chạy ổn định. Ban đầu vì chính không có dòng này nên dịch vụ không tự khởi động khi lỗi văng
+
+5. Dùng chung network + lợi ích
+Khai báo chung network trong docker-compose.yml giúp các container giao tiếp bằng tên (ví dụ nodered:1880) thay vì IP, dễ quản lý và mở rộng hệ thống.
+
+6. Đưa Cloudflare Token vào .env + .gitignore
+Token là thông tin nhạy cảm, nên lưu trong .env và không commit lên GitHub để tránh bị lộ và bị người khác chiếm quyền tunnel.
+
+7. Tại sao dùng :ro khi mount Nginx config
+:ro (read-only) giúp container chỉ đọc file cấu hình, không thể sửa từ bên trong, tránh lỗi hoặc bị ghi đè ngoài ý muốn.
+
+8. Dùng Cloudflare Tunnel có cần mở port không?
+Không, vì tunnel tạo kết nối outbound tới Cloudflare, từ đó người dùng truy cập vào mà không phải mở cổng trực tiếp trên server, tăng bảo mật
 
 
 # Chương 2: Django xây dựng web quản lý tiệm cầm đồ
+### 1. Hệ thống quản lý tiệm cầm đồ
+
+#### Cấu trúc: 
+```
+├── camdo_django/       # Django project + Dockerfile + requirements.txt
+├── myapi/              # API service
+├── myweb/              # HTML static site
+├── nodered/            # Node-RED flows
+├── nginx/              # Nginx config
+├── docker-compose.yml  # toàn bộ stack
+```
+
+#### Giới thiệu hệ thống
+Hệ thống quản lý tiệm cầm đồ được xây dựng bằng:
+Django
+Docker
+phpMyAdmin
+Cloudflare Tunnel
+MariaDB
+Các service chính:django + mariadb + phpmyadmin
+
+### 1. Khởi tạo Ubuntu:
+<img width="1483" height="1053" alt="image" src="https://github.com/user-attachments/assets/064e38a6-4e8b-447e-ab6d-f993c8bf8ff2" />
+
+* Cài Ubuntu 24.04 LTS (VM hoặc server).
+* Cập nhật hệ thống:
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+* Cài Docker & Docker Compose:
+
+```bash
+sudo apt install docker.io docker-compose -y
+sudo systemctl enable --now docker
+```
+
+* Kiểm tra:
+
+```bash
+docker --version
+docker-compose --version
+```
+
+---
+
+## 2️⃣ Tạo cấu trúc thư mục dự án
+
+```text
+~/myapp/
+├── camdo_django/       # Django project + Dockerfile + requirements.txt
+├── myapi/              # API service
+├── myweb/              # HTML static site
+├── nodered/            # Node-RED flows
+├── nginx/              # Nginx config
+├── docker-compose.yml  # toàn bộ stack
+```
+
+* Tạo folder `camdo_django` cho Django, dễ edit code bằng volume mount.
+
+---
+
+## 3️⃣ Dockerfile Django
+
+* Base image: `python:3.12-bullseye` (để build `mysqlclient` thành công).
+* Cài dependencies system (`gcc`, `libmysqlclient-dev`, `libssl-dev`, `libffi-dev`) trước khi pip install.
+* Copy `requirements.txt` → pip install → copy Django source.
+* Expose port 8000 → chạy server Django dev.
+
+---
+
+## 4️⃣ requirements.txt
+
+```text
+Django>=4.2,<5         # framework chính
+mysqlclient>=2.2        # connector MariaDB
+```
+
+* Giải thích:
+
+  * Django: tạo project, app, models, admin site.
+  * mysqlclient: kết nối MariaDB.
+
+---
+
+## 5️⃣ docker-compose.yml – Full stack
+
+* **Services**:
+
+| Service     | Image / Build           | Port | Chức năng                      |
+| ----------- | ----------------------- | ---- | ------------------------------ |
+| nodered     | nodered/node-red        | 1880 | Workflow / automation          |
+| nginx       | nginx:latest            | 80   | Reverse proxy / frontend       |
+| cloudflared | cloudflare/cloudflared  | -    | Public Cloudflare Tunnel       |
+| filebrowser | filebrowser/filebrowser | 8081 | Quản lý file GUI               |
+| myapi       | ./myapi (build)         | -    | API riêng                      |
+| db          | mariadb:10.11           | 3307 | Database chính                 |
+| phpmyadmin  | phpmyadmin:latest       | 8082 | Kiểm tra DB                    |
+| django      | ./camdo_django (build)  | 8000 | Django app quản lý tiệm cầm đồ |
+
+* Volume:
+
+  * db_data → MariaDB persistent
+  * mount `./camdo_django:/app` → edit code trực tiếp.
+
+---
+Nginx.conf:
+<img width="1228" height="695" alt="image" src="https://github.com/user-attachments/assets/d04d9a2b-094a-4157-9152-e9044bab0a00" />
 
 
+## 6️⃣ Django project setup
+
+* `docker-compose run django python manage.py startproject camdo_proj .`
+* Chỉnh **settings.py** để kết nối MariaDB (`db` service, user/password đã config).
+* Tạo app `camdo_app` → thêm `models.py` (Customer, PawnItem, FK), `views.py`, template `home.html`.
+* Migrate và tạo superuser:
+
+```
+docker-compose exec django python manage.py migrate
+docker-compose exec django python manage.py createsuperuser
+```
+
+## 7️⃣ Admin site & trang home
+
+* Admin site: thêm/sửa/xóa bảng, FK hiển thị dạng select text.
+* Home page (`home_page`) liệt kê **con nợ đến hạn chưa trả tiền**.
+* Template sử dụng **Jinja2**:
+
+```html
+{% for item in due_items %}
+<tr>
+  <td>{{ item.customer.name }}</td>
+  <td>{{ item.item_name }}</td>
+  <td>{{ item.value }}</td>
+  <td>{{ item.due_date }}</td>
+</tr>
+{% endfor %}
+```
+
+---
+
+## 8️⃣ PhpMyAdmin
+
+* Dùng để **xem dữ liệu DB** và kiểm chứng FK, không tạo bảng.
+* URL: `http://localhost:8082/`
+* Sơ lược bảng viết tay
+<img width="1920" height="2560" alt="image" src="https://github.com/user-attachments/assets/686e69d9-7880-4bc1-b0df-b1b77e7ce542" />
+
+---
+
+## 9️⃣ Cloudflare Tunnel
+<img width="1919" height="951" alt="image" src="https://github.com/user-attachments/assets/6fabc1a3-39a9-4177-bf59-7ae6f617ce94" />
+
+* Tạo subdomain: `camdo.anhtu.divu.click`
+* DNS: CNAME → `divu.click`, **proxy bật**.
+* Trong Zero Trust → Tunnels → Public Hostname:
+
+| Hostname               | Service                                                              | TLS  |
+| ---------------------- | -------------------------------------------------------------------- | ---- |
+| camdo.anhtu.divu.click | [http://host.docker.internal:8000](http://host.docker.internal:8000) | Auto |
+
+* Tunnel route request từ internet → host port 8000 → Django container.
+
+---
+
+## 🔟 Kết quả
+<img width="1919" height="1024" alt="image" src="https://github.com/user-attachments/assets/9b20f511-dc2a-430f-b8e7-0683bd06d3d1" />
+
+* Home page hiển thị danh sách con nợ đến hạn.
+* PhpMyAdmin kiểm chứng CS.
+* Tất cả chạy trên Docker, public qua Cloudflare Tunnel.
+
+
+
+## **Kết luận**
+---
+* Hệ thống **quản lý tiệm cầm đồ** đã được triển khai thành công trên **Docker** với các service **Django, MariaDB, phpMyAdmin**, kết hợp với **Nginx, Node-RED, Filebrowser và Cloudflare Tunnel**.
+* Việc sử dụng **Docker Compose** giúp quản lý và chạy toàn bộ stack đồng thời, dễ bảo trì và mở rộng.
+* **Django Admin** cung cấp giao diện trực quan để **thêm, sửa, xóa** dữ liệu bảng, đồng thời quản lý các **khách hàng, vật cầm, hợp đồng** với quan hệ **FK hiển thị text**, dễ kiểm chứng bằng **phpMyAdmin**.
+* **Template Jinja2** cho phép render danh sách **con nợ đến hạn**, minh họa luồng nghiệp vụ chính của hệ thống.
+* **Cloudflare Tunnel** cung cấp cách **public subdomain** an toàn, truy cập từ Internet mà không cần expose trực tiếp host port, đồng thời đảm bảo HTTPS.
+* Cách triển khai này **dễ demo, dễ chỉnh sửa bằng volume mount và sudo nano**, đồng thời có thể mở rộng, thêm tính năng hoặc dịch vụ mới mà không ảnh hưởng các service cũ.
+* Hệ thống này **tối ưu cho giảng dạy và trình bày**, minh họa toàn bộ luồng từ backend → frontend → public access, đồng thời duy trì tính bảo mật và modular.
+---
+ 
 # Chương 3: Wordpress (php), mariadb, phpmyadmin 
+Yêu cầu: Ứng dụng WP vào Docker để xây dựng website cùng với Mariadb kết nối Cloudflare
+### A. Wordpress
+Kịch bản: Máy đã có dự án cũ, tạo mới sao cho độc lập tránh chồng chéo.
+### 1. Chuẩn bị:
+### Dự án mới: 
+<img width="1104" height="319" alt="image" src="https://github.com/user-attachments/assets/8214af6f-3808-40b9-a98f-f6f69a8d7120" />
+Hành động thoát dự án cũ, về với /home trước khi tạo dự án mới.
+ + Cấu hình docker compose.yml.
+ + Chạy docker compose up -d => kéo các Image về và tạo Container
+ + Check: docker ps.
+   
+### Cấu hình subdomain mới:
++ Cloudflare Dashboard >...> Tunnel
++ Chọn Tunnel của miền mẹ. Edit
++ Thêm subdomain, Service URL, Path
+Trọng tâm:
++ kiểm tra cổng ss -tulpn | grep <port_cua_wordpress> nếu bị trùng và đổi.
++ **Service URL** đặt IP của ens33/eth0 + cổng ví dụ: 192.168.222.111:8882
+<img width="1536" height="646" alt="image" src="https://github.com/user-attachments/assets/159d1eb9-7701-4134-a571-7b7d836f1dcb" />
+ Bởi vì ban đầu Cloudflare Tunnel của ta đang chạy bên trong Docker nên không thể dùng ip 127.0.0.1 thì CF sẽ tìm chính nó thay vì tìm ra ngoài để thấy 8882. Dùng chính IP máy ảo để Container Tunnel "nhìn thấy" dịch vụ đang mở ở cổng 8882 của máy chủ.
+
+### Thiết lập Wordpress: 
+Đi thiết lập Wp:
+<img width="973" height="478" alt="image" src="https://github.com/user-attachments/assets/cd525636-5e43-490f-93a8-3ff37ac79a76" />
+.
+<img width="1862" height="957" alt="image" src="https://github.com/user-attachments/assets/27364719-829d-4346-9ae4-d83a5b396f05" />
+<img width="1887" height="922" alt="image" src="https://github.com/user-attachments/assets/ce69afcf-e919-40a6-8a86-3b06c49c5fc9" />
+
+| Tiêu chí | Nhận xét |
+|---|---|
+| Công sức | Rất thấp. Việc dùng Docker giúp triển khai 3 dịch vụ cùng lúc chỉ với 1 lệnh docker compose up. |
+| Độ khó | Dễ sử dụng giao diện web, nhưng đòi hỏi kiến thức về Network (như lỗi 502 bạn vừa sửa) để kết nối Cloudflare Tunnel. |
+| Tài nguyên | WordPress chạy trên PHP khá ngốn RAM (khoảng 200-400MB cho 1 dự án). Nếu chạy nhiều site trên 1 máy ảo yếu, RAM sẽ bị quá tải (Swapping). |
+| Tính tiện dụng | Rất cao cho việc tạo website nhanh, nhưng tốn công tối ưu bảo mật và tốc độ hơn so với code tay thuần túy. |
+
+### B. N8N 
+### 1. Tạo và cài n8n
+<img width="662" height="102" alt="Screenshot 2026-05-25 152227" src="https://github.com/user-attachments/assets/e1aef58a-4421-4c59-86a2-2441fa1ca710" />
+ N8n yêu cầu ssl và https. Để không cần cài ssl. Có phương pháp cấu hình như sau:
+```
+n8n_wpanhtu:
+    image: n8nio/n8n:latest
+    restart: always
+    container_name: n8n_wpanhtu
+    ports:
+      - "5678:5678"
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+      - WEBHOOK_URL=https://n8nanhtu.divu.click/
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+```
+ - Mấu chốt ở - WEBHOOK_URL=https://n8nanhtu.divu.click/. Và Tunnel 
+ <img width="1406" height="717" alt="image" src="https://github.com/user-attachments/assets/41e4a001-da28-45cc-b0ee-91683206319c" />
+. Rồi tạo tk:
+<img width="657" height="844" alt="image" src="https://github.com/user-attachments/assets/9b36cc60-fe18-4fec-aeee-ddbe4a3387f9" />
+
+
+### Điểm quan trọng:
+Trong quá trình cấu hình gặp lỗi "Bad lock file is ignored: ./.docker-compose.yml.swp", đồng thời gây ra lỗi "Error establishing a database connection (Wordpress)" và n8n không truy cập được. Đây là cách xử lý:
+Nguyên nhân Ổ đĩa đầy (100%) 
+   │
+   ├──► Ubuntu không ghi được File tạm (.swp) ──► Docker Compose kẹt cú pháp
+   │
+   ├──► n8n Container ghi đè File Config lỗi ──► File config hỏng (Invalid JSON) ──► n8n Crash liên tục
+   │
+   └──► MariaDB không tạo được File Lock ────► Container sập (Exit code 1) ────► WordPress mất kết nối (Database Error)
++ Xử lý:
+1. Nâng dung lượng lên.
+2. Xóa cấu hình và thư mục n8n cũ
+<img width="695" height="381" alt="image" src="https://github.com/user-attachments/assets/9800e6e4-f7ed-4bc9-9bca-8623d5636379" />
+
+
+### 2. Tạo workflow:
+- Sau khi bấm vào "Sự kiện trên ứng dụng", một ô tìm kiếm sẽ hiện ra. Bạn gõ chữ Telegram và chọn Telegram Trigger.
+- Ở bảng cấu hình bên phải hiện ra tiếp theo, tại mục Event (Sự kiện), bạn chọn là On Message (Khi có tin nhắn đến).
+- Tại mục Credential, bấm vào nút **Set up credential**, chọn Create New Credential rồi dán chuỗi Access Token mà lấy từ @BotFather vào.
+<img width="570" height="640" alt="image" src="https://github.com/user-attachments/assets/bde86eec-741f-4bfd-a1b8-adbedc9f640b" />
+<img width="1342" height="695" alt="image" src="https://github.com/user-attachments/assets/c4d77dd7-16ab-4bb0-8a81-0306ea449db4" />
+
+```
+[Telegram Trigger] ──► [Google Gemini] ──► [Code JavaScript] ──► [WordPress Node]
+ (Nhận tin nhắn)        (Sinh bài viết JSON)   (Lọc & làm sạch dữ liệu)   (Đăng bài Publish)
+```
+Thêm node Gemini:
+<img width="1852" height="805" alt="image" src="https://github.com/user-attachments/assets/ff5da6c2-7ef9-45ea-bfe1-bedb5cb5ec19" />.
+- truy cập vào trang web: https://aistudio.google.com/ lấy key
+- Credential, bạn bấm vào ô lựa chọn và chọn Create New Credential. Điền Key.
+- Chọn Model
+- Prompt: {{ $json.message.text }}. Kết quả sinh ra ở định dạng HTML+CSS để tôi dùng HTML+CSS này tạo bài viết cho wordpress.
+- Bật Output Content as JSON
+- Bấm Execute step
+
+Thêm node Code:
+<img width="1857" height="822" alt="image" src="https://github.com/user-attachments/assets/8b1bb2b4-f2af-457a-9e2b-c3c0b0f5355c" />
+```
+// 1. Lấy chuỗi mã HTML thô từ node Gemini truyền sang
+let rawHtml = $input.first().json.content.parts[0].text;
+
+// Làm sạch các dấu nháy kép thừa ở đầu và cuối chuỗi nếu có
+if (rawHtml.startsWith('"') && rawHtml.endsWith('"')) {
+    rawHtml = rawHtml.substring(1, rawHtml.length - 1);
+}
+
+// 2. Tự động bóc tách Tiêu đề (Nằm giữa cặp thẻ <h1> và </h1>)
+let postTitle = "Bài viết tự động từ AI"; // Tiêu đề mặc định nếu lỗi
+const titleMatch = rawHtml.match(/<h1>(.*?)<\/h1>/);
+if (titleMatch && titleMatch[1]) {
+    postTitle = titleMatch[1].replace(/\\"/g, '"').trim();
+}
+
+// 3. Tự động bóc tách Nội dung (Lấy phần style và nội dung chính)
+let postContent = rawHtml;
+const bodyMatch = rawHtml.match(/<body>([\s\S]*?)<\/body>/);
+const styleMatch = rawHtml.match(/<style>([\s\S]*?)<\/style>/);
+
+if (bodyMatch && bodyMatch[1]) {
+    // Kết hợp phần Style và phần Body để WordPress hiển thị đẹp mắt
+    let styleTag = styleMatch ? `<style>${styleMatch[1]}</style>` : '';
+    postContent = styleTag + bodyMatch[1];
+}
+
+// Làm sạch các ký tự xuống dòng (\\n) và dấu gạch chéo ngược (\\") do JSON sinh ra
+postContent = postContent.replace(/\\n/g, '\n').replace(/\\"/g, '"').trim();
+
+// 4. Trả kết quả chuẩn về cho Node WordPress sử dụng
+return {
+  title: postTitle,
+  content: postContent
+};
+```
+
+Tạo MẬT KHẨU ứng dụng. Để điền vào dưới
+<img width="1652" height="548" alt="image" src="https://github.com/user-attachments/assets/cd8b60ad-373b-4c5b-a078-9e8edd37eab5" />
+ymhI TKCF e0Xt VHCc tfj2 QqYK
+
+Thêm node Wordpress:
+<img width="1345" height="708" alt="image" src="https://github.com/user-attachments/assets/e804406b-8610-4af5-953b-e8ba6e3d1932" />
+- Bật Ignore SSL Issues
+
+### CHẠY FLOW:
+Chạy từng node bằng cách Execute step
+Nếu lỗi, sửa:
+Tại nano /home/wpanhtu/wp_data/wp-config.php
+define('WP_ENVIRONMENT_TYPE', 'local');
+<img width="1089" height="76" alt="image" src="https://github.com/user-attachments/assets/bb2b1dd2-e432-48af-aa0c-7575a8b22a54" />
+Done:
+<img width="1873" height="818" alt="image" src="https://github.com/user-attachments/assets/bb690b57-371f-4293-8ae3-0c6a2a2597d7" />
+
+Xong:
+<img width="1901" height="901" alt="image" src="https://github.com/user-attachments/assets/d842765b-df2d-4e4f-8b9a-6f692d04a7f5" />
 
 
 # Chương 4: auto đăng bài bằng AI với wordpress, n8n, bot telegram, gemini
