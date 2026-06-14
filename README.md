@@ -1,9 +1,10 @@
 # PtrUngdung_opensource
 
-
-# PHẦN I: KIẾN THỨC NỀN TẢNG
+# Chương 5: Vận dụng tổng hợp xử lý bài toán Giám sát và cảnh báo thời gian thực về giá bạc
+## PHẦN I: KIẾN THỨC NỀN TẢNG
 ## 1. Khái niệm DockerDocker 
 là một nền tảng mã nguồn mở cho phép đóng gói ứng dụng và tất cả các thành phần phụ thuộc (thư viện, môi trường runtime, cấu hình hệ thống) vào một đơn vị độc lập gọi là Container.Khác với ảo hóa truyền thống (Virtual Machines) đòi hỏi một hệ điều hành khách (Guest OS) hoàn chỉnh cho mỗi máy ảo, Docker chia sẻ chung nhân kernel của hệ điều hành host. Cơ chế này giúp các container khởi động tức thì trong vài mili giây, tiêu tốn cực ít tài nguyên RAM/CPU và loại bỏ hoàn toàn lỗi cấu hình khi di chuyển phần mềm giữa các máy tính khác nhau.
+
 ## 2. Các từ khóa cốt lõi trong cấu trúc docker-compose.yml
 File docker-compose.yml định nghĩa kiến trúc đa dịch vụ (multi-service). Các cấu phần cấu trúc bao gồm:version: Định nghĩa phiên bản cú pháp của Docker Compose để trình biên dịch hiểu.services: Nhóm định nghĩa tất cả các container riêng lẻ cấu thành ứng dụng.image: Chỉ định template mẫu (Image) được tải từ Docker Hub về làm phôi chạy container.container_name: Đặt tên tường minh cho container nhằm quản lý trực quan thay vì mã băm ngẫu nhiên.ports: Thiết lập ánh xạ cổng truyền thông theo cấu trúc Cổng_Máy_Host:Cổng_Nội_Bộ_Container.environment: Thiết lập các biến môi trường cấu hình bên trong hệ thống (như tài khoản, mật khẩu DB).volumes: Gắn phân vùng ổ đĩa cố định từ máy Host vào Container để tránh mất dữ liệu khi container bị tắt hoặc reset.networks: Tạo các mạng ảo cô lập cho phép các container giao tiếp nội bộ an toàn bằng tên của nhau (Service Discovery).restart: Quy định hành vi tự động khởi động lại container nếu xảy ra sự cố đột ngột hoặc lỗi sập nguồn hệ thống.Ví dụ cấu trúc thực tế minh họa:
 ```yaml
@@ -140,9 +141,10 @@ networks:
 
 ```
 
-## 3. Thực hành chi tiết từng cấu phần hệ thốngBước 3.1: Cấu hình Node-RED thu thập và rẽ nhánh dữ liệu luôn luôn gửi định kỳLuồng Node-RED sử dụng node http request kéo mã nguồn HTML từ các sàn giao dịch. Khối chức năng Function xử lý Regex bóc tách chuỗi số, loại bỏ nhiễu để định dạng về kiểu đối tượng 
-```json
- sạch.Dữ liệu sau khi xử lý được tách làm 3 nhánh hoạt động đồng thời:Đẩy lệnh POST sang Flask API nhằm cập nhật trạng thái giá tức thời vào MariaDB.Bắn dữ liệu dạng cấu trúc thời gian vào InfluxDB lưu lịch sử.Bỏ qua cơ chế chặn giá trùng, luôn luôn gửi thông tin trạng thái thị trường cập nhật định kỳ mỗi 15 phút về hệ thống Telegram Bot.Mã cấu trúc luồng Node-RED (Trích đoạn luồng xử lý đồng bộ):
+## 3. Thực hành chi tiết từng cấu phần hệ thống
+- Bước 3.1: Cấu hình Node-RED thu thập và rẽ nhánh dữ liệu luôn luôn gửi định kỳ
+Luồng Node-RED sử dụng node http request kéo mã nguồn HTML từ các sàn giao dịch. Khối chức năng Function xử lý Regex bóc tách chuỗi số, loại bỏ nhiễu để định dạng về kiểu đối tượng 
+json sạch.Dữ liệu sau khi xử lý được tách làm 3 nhánh hoạt động đồng thời:Đẩy lệnh POST sang Flask API nhằm cập nhật trạng thái giá tức thời vào MariaDB.Bắn dữ liệu dạng cấu trúc thời gian vào InfluxDB lưu lịch sử.Bỏ qua cơ chế chặn giá trùng, luôn luôn gửi thông tin trạng thái thị trường cập nhật định kỳ mỗi 15 phút về hệ thống Telegram Bot.Mã cấu trúc luồng Node-RED (Trích đoạn luồng xử lý đồng bộ):
 ```json
 [
   {
@@ -154,7 +156,7 @@ networks:
     "wires": [["http_save_api", "node_check_alert_v3", "func_status_tele_phuquy"]]
   }
 ]
-Bước 3.2: Xây dựng Flask API xử lý Front-End giao tiếp Cơ sở dữ liệu MariaDBTầng API giao tiếp trực tiếp với MariaDB thông qua Driver kết nối. Đoạn mã 
+- Bước 3.2: Xây dựng Flask API xử lý Front-End giao tiếp Cơ sở dữ liệu MariaDBTầng API giao tiếp trực tiếp với MariaDB thông qua Driver kết nối. Đoạn mã 
 ```python
  xử lý nhận dữ liệu ghi vào, đồng thời mở một luồng Endpoint /api/get_realtime cho phép Front-End bên ngoài truy cập đọc cấu trúc 
 ```json
@@ -200,7 +202,8 @@ function fetchRealtimeData() {
         });
 }
 setInterval(fetchRealtimeData, 5000); // Tự động quét cập nhật dữ liệu sau mỗi 5 giây
-Bước 3.3: Tối ưu trực quan hóa biểu đồ dạng khối vuông nối tiếp trên GrafanaĐể xử lý hiện tượng dữ liệu tài chính biến thiên nhỏ (độ lệch vài trăm đồng) bị ép phẳng lỳ trên đồ thị mặc định, cấu trúc truy vấn được gom nhóm thông minh theo khoảng thời gian 15 phút bằng cấu trúc lệnh 
+```
+- Bước 3.3: Tối ưu trực quan hóa biểu đồ dạng khối vuông nối tiếp trên GrafanaĐể xử lý hiện tượng dữ liệu tài chính biến thiên nhỏ (độ lệch vài trăm đồng) bị ép phẳng lỳ trên đồ thị mặc định, cấu trúc truy vấn được gom nhóm thông minh theo khoảng thời gian 15 phút bằng cấu trúc lệnh 
 ```sql
  GROUP BY, kết hợp gán biên độ cứng tối ưu hóa trục đứng $Y-Axis$:
 ```sql
@@ -212,28 +215,31 @@ FROM bang_gia_bac
 WHERE gia_ban > 2000000 
 GROUP BY time
 ORDER BY time ASC;
-
-Tinh chỉnh thuộc tính hiển thị trực quan đồ thị:Graph Styles $\rightarrow$ Line interpolation: Thiết lập về giá trị Step before (Biểu đồ bậc thang vuông góc). Dữ liệu đi ngang tạo cạnh phẳng, khi cào được giá mới (dù lệch nhỏ 100đ) đồ thị bẻ góc vuông $90^\circ$ giật thẳng đứng lên hoặc xuống, giúp mắt thường quan sát rõ rệt sự biến thiên.Standard Options $\rightarrow$ Min/Max: Ép sát sàn giới hạn trục Y từ mốc 2570000 đến 2575000 nhằm kéo giãn tối đa biên độ không gian hiển thị của đường đồ thị vuông.Bước 3.4: Thiết lập bộ lọc dữ liệu lỗi và hệ thống cảnh báo qua Telegram BotHệ thống sử dụng node Switch trong Node-RED để phân tách luồng dữ liệu kiểm thử. Khi giá bán vượt ngoài vùng an toàn cho phép $[2.500.000 \dots 2.700.000]$, tiến trình tự động rẽ nhánh kích hoạt soạn tin nhắn thông báo:Giá bán > 2.700.000đ: Kích hoạt nhánh Alert High gửi tin nhắn kèm ký hiệu báo động đỏ.Giá bán < 2.500.000đ: Kích hoạt nhánh Alert Low gửi tin nhắn kèm ký hiệu cảnh báo vàng.Cơ chế nhóm truyền thông công khai:Bot Telegram được đưa vào nhóm làm việc cố định gồm 3 thành viên (Bao gồm quản trị viên hệ thống và mã định danh thành viên bổ sung 1875746636). Mỗi khi cấu trúc dữ liệu lỗi được đẩy lên Webhook API của Telegram qua đường dẫn tương tác:https://api.telegram.org/bot<Token>/sendMessageTất cả các thành viên trong nhóm đồng loạt nhận được thông tin cảnh báo tường minh, nêu rõ thương hiệu vi phạm ngưỡng kèm giá trị số cụ thể gây ra lỗi.
 ```
+Tinh chỉnh thuộc tính hiển thị trực quan đồ thị:
+- Graph Styles $\rightarrow$ Line interpolation: Thiết lập về giá trị Step before (Biểu đồ bậc thang vuông góc). Dữ liệu đi ngang tạo cạnh phẳng, khi cào được giá mới (dù lệch nhỏ 100đ) đồ thị bẻ góc vuông $90^\circ$ giật thẳng đứng lên hoặc xuống, giúp mắt thường quan sát rõ rệt sự biến thiên.
+- Standard Options $\rightarrow$ Min/Max: Ép sát sàn giới hạn trục Y từ mốc 2570000 đến 2575000 nhằm kéo giãn tối đa biên độ không gian hiển thị của đường đồ thị vuông.Bước 3.4: Thiết lập bộ lọc dữ liệu lỗi và hệ thống cảnh báo qua Telegram Bot
+- Hệ thống sử dụng node Switch trong Node-RED để phân tách luồng dữ liệu kiểm thử. Khi giá bán vượt ngoài vùng an toàn cho phép $[2.500.000 \dots 2.700.000]$, tiến trình tự động rẽ nhánh kích hoạt soạn tin nhắn thông báo:
++ Giá bán > 2.700.000đ: Kích hoạt nhánh Alert High gửi tin nhắn kèm ký hiệu báo động đỏ.
++ Giá bán < 2.500.000đ: Kích hoạt nhánh Alert Low gửi tin nhắn kèm ký hiệu cảnh báo vàng.
+   Cơ chế nhóm truyền thông công khai:Bot Telegram được đưa vào nhóm làm việc cố định gồm 3 thành viên (Bao gồm quản trị viên hệ thống và mã định danh thành viên bổ sung 1875746636). Mỗi khi cấu trúc dữ liệu lỗi được đẩy lên Webhook API của Telegram qua đường dẫn tương tác:https://api.telegram.org/bot<Token>/sendMessageTất cả các thành viên trong nhóm đồng loạt nhận được thông tin cảnh báo tường minh, nêu rõ thương hiệu vi phạm ngưỡng kèm giá trị số cụ thể gây ra lỗi.
 
 ## 4. Quy trình đóng gói xuất và khôi phục hệ thống cô lập an toàn
-Để bảo vệ toàn vẹn dữ liệu gốc và không gây ảnh hưởng đến các dự án độc lập khác chạy chung trên máy chủ hệ thống, quy trình thực hiện xử lý thông qua môi trường Container cách ly:Bước 4.1: Xuất toàn bộ hệ thống bằng Container bảo mậtKhi cụm container đang ở trạng thái dừng, các dữ liệu lưu trữ bị khóa quyền hệ thống. Chúng ta sử dụng một Container Linux phụ trợ siêu nhẹ (alpine) chui trực tiếp vào phân vùng Docker để đóng gói tệp tin cấu hình và tệp tin linh hồn lưu trữ của đồ thị grafana.db cùng toàn bộ tệp tin MariaDB:
-```bash
+Để bảo vệ toàn vẹn dữ liệu gốc và không gây ảnh hưởng đến các dự án độc lập khác chạy chung trên máy chủ hệ thống, quy trình thực hiện xử lý thông qua môi trường Container cách ly:
+Bước 4.1: Xuất toàn bộ hệ thống bằng Container bảo mậtKhi cụm container đang ở trạng thái dừng, các dữ liệu lưu trữ bị khóa quyền hệ thống. Chúng ta sử dụng một Container Linux phụ trợ siêu nhẹ (alpine) chui trực tiếp vào phân vùng Docker để đóng gói tệp tin cấu hình và tệp tin linh hồn lưu trữ của đồ thị grafana.db cùng toàn bộ tệp tin MariaDB:
+ 
 # Thực hiện đóng gói cô lập toàn bộ hạ tầng bên trong Container phụ trợ
 docker run --rm -v $(pwd):/backup alpine tar -czvf /backup/project_thitruong_backup.tar.gz -C /backup docker-compose.yml flask_api nginx mariadb_data influxdb_data nodered_data grafana_data/grafana.db
 Bước 4.2: Xóa sạch trạng thái hệ thống (Reset trắng)
-```bash
-```
-
-# Xóa bỏ hoàn toàn container, cấu trúc mạng cục bộ ảo và tàn dư cache của dự án
+  
+# Xóa bỏ hoàn toàn container, cấu trúc mạng cục bộ ảo cache của dự án
 docker-compose down -v
 Kết quả kiểm tra qua lệnh docker ps cho thấy cụm dịch vụ giá bạc biến mất hoàn toàn, hệ thống máy chủ trống sạch sẽ, trong khi tất cả các ứng dụng chạy độc lập khác ngoài VPS không bị gián đoạn.Bước 4.3: Tái nạp hệ thống khôi phục nguyên trạng từ file cấu hình
-```bash
+ 
 # Khởi chạy tái sinh toàn bộ hạ tầng từ vùng lưu trữ cố định
 docker-compose up -d
 Hạ tầng tự động đọc lại các phân vùng dữ liệu cũ đã được bảo hiểm trong thư mục, trang giao diện tại cổng :82 hoạt động ổn định trở lại, hiển thị chính xác biểu đồ vuông nối tiếp thời gian thực mà không yêu cầu người quản trị cấu hình lại bất kỳ thông số hệ thống nào.
-```
-
+ 
 # PHẦN III: KẾT LUẬN VÀ KIẾN THỨC RÚT RA SAU TRIỂN KHAI:
 Qua quá trình tương tác kỹ thuật, trực tiếp gỡ lỗi hệ thống, em rút ra các bài học và tri thức cốt lõi được đúc kết bao gồm:
 + Bản chất lưu trữ dữ liệu của Docker: Việc sử dụng container yêu cầu tư duy phân tách rõ ràng giữa Lớp xử lý logic (Runtime) và Lớp dữ liệu lưu trữ (Persistent Data). Nếu không ánh xạ thư mục ra máy Host thông qua Volumes, toàn bộ CSDL và luồng Node-RED sẽ biến mất hoàn toàn khi container bị khởi động lại.
