@@ -329,7 +329,8 @@ Trọng tâm:
 | Tài nguyên | WordPress chạy trên PHP khá ngốn RAM (khoảng 200-400MB cho 1 dự án). Nếu chạy nhiều site trên 1 máy ảo yếu, RAM sẽ bị quá tải (Swapping). |
 | Tính tiện dụng | Rất cao cho việc tạo website nhanh, nhưng tốn công tối ưu bảo mật và tốc độ hơn so với code tay thuần túy. |
 
-### B. N8N 
+# Chương 4: auto đăng bài bằng AI với wordpress, n8n, bot telegram, gemini
+ Tiếp tục vận dụng hệ thống gồm wordpress (php), mariadb, phpmyadmin để kết hợp với n8n auto đăng bài.
 ### 1. Tạo và cài n8n
 <img width="662" height="102" alt="Screenshot 2026-05-25 152227" src="https://github.com/user-attachments/assets/e1aef58a-4421-4c59-86a2-2441fa1ca710" />
  N8n yêu cầu ssl và https. Để không cần cài ssl. Có phương pháp cấu hình như sau:
@@ -445,10 +446,6 @@ Done:
 
 Xong:
 <img width="1901" height="901" alt="image" src="https://github.com/user-attachments/assets/d842765b-df2d-4e4f-8b9a-6f692d04a7f5" />
-
-
-# Chương 4: auto đăng bài bằng AI với wordpress, n8n, bot telegram, gemini
-
 
 
 # Chương 5: Vận dụng tổng hợp xử lý bài toán Giám sát và cảnh báo thời gian thực về giá bạc
