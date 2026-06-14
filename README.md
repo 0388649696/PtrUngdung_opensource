@@ -1,4 +1,17 @@
-# PtrUngdung_opensource
+**Họ tên: Nguyễn Đức Anh Tú** - K225480106070 - K58KTP
+
+# Chương 1: Ứng dụng Ubuntu và Docker, dùng Docker để Build myapi
+
+
+# Chương 2: Django xây dựng web quản lý tiệm cầm đồ
+
+
+# Chương 3: Wordpress (php), mariadb, phpmyadmin 
+
+
+# Chương 4: auto đăng bài bằng AI với wordpress, n8n, bot telegram, gemini
+
+
 
 # Chương 5: Vận dụng tổng hợp xử lý bài toán Giám sát và cảnh báo thời gian thực về giá bạc
 ## PHẦN I: KIẾN THỨC NỀN TẢNG
